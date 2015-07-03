@@ -10,21 +10,31 @@
 #include <cstdlib>
 using namespace std;
 
-// ------- class prototypes -------
+// Class prototypes
 class TripleString
 {
-public:
-   static const int MAX_LEN = 20;
 private:
    string string1, string2, string3;
 public:
-   void set1stString(string str);
+   static const int MAX_LEN;
+
+public:
+   //default constructor
+   TripleString();
+   //mutators and accessors
+   bool set1stString(string str);
    string get1stString();
-   void set2ndString(string str);
+   bool set2ndString(string str);
    string get2ndString();
-   void set3rdString(string str);
+   bool set3rdString(string str);
    string get3rdString();
+private:
+   //helper method checking validity
+   bool validString(string str);
 };
+
+// Initialize constant
+const int TripleString::MAX_LEN = 20;
 
 // Global-scope method prototypes
 int getBet();
@@ -32,40 +42,45 @@ TripleString pull();
 string randString();
 int getPayMultiplier (TripleString thePull);
 void display (TripleString thePull, int winnings);
-bool validString(string str);
 
-// main() method defination
+
+//-------------- main() method definition --------------
 int main()
 {
-   int userBet;
+   const int QUIT_BET = 0;
+   int userBet, payFactor;
+   TripleString pullString;
 
-   do
+   // Start a loop to play, enter 0 to quit game
+   while (true)
    {
       userBet = getBet();
-      if (userBet != 0)
-      {
-         TripleString thePull = pull();
-         int pay = getPayMultiplier(thePull);
-         display(thePull, pay * userBet);
-      }
+      if (userBet == QUIT_BET)
+         break;
       else
       {
-         cout << "\nHope you had a wonderful time. Good bye!\n";
+         pullString = pull();
+         payFactor = getPayMultiplier(pullString);
+         display(pullString, payFactor * userBet);
       }
-   } while (userBet != 0);
+   }
 
    return 0;
 }
 
-// Ask for the user's bet (1-100)
+//------------ Global-scope methods definitions ------------
+
+// Ask for the user's bet ($1 - $100)
 int getBet()
 {
+   const int MINIMUM_INPUT = 0, MAXIMUM_INPUT = 100;
    int theBet;
+
    do
    {
       cout << "How much would you like to bet (1 - 100) or 0 to quit? ";
       cin >> theBet;
-   } while ((theBet < 1 || theBet > 100) && theBet != 0);
+   } while (theBet < MINIMUM_INPUT || theBet > MAXIMUM_INPUT);
 
    return theBet;
 }
@@ -74,6 +89,7 @@ int getBet()
 TripleString pull()
 {
    TripleString triStrings;
+
    triStrings.set1stString(randString());
    triStrings.set2ndString(randString());
    triStrings.set3rdString(randString());
@@ -81,44 +97,51 @@ TripleString pull()
    return triStrings;
 }
 
-// Generate a random string among "BAR", "cherries", "(space)" and "7".
+// Generate a random string among "BAR", "cherries", "space" and "7".
 string randString()
 {
-   int randNum = rand() % 100 + 1;
+   const int NEW_RAND_MAX = 100, PERCENTAGE_OF_BAR = 50,
+      PERCENTAGE_OF_CHERRY = 25, PERCENTAGE_OF_SPACE = 12.5;
+   int randNum = rand() % NEW_RAND_MAX + 1;
 
-   if (randNum > 50)
+   if (randNum > PERCENTAGE_OF_BAR)
       return "BAR";
-   else if (randNum > 25)
+   else if (randNum > PERCENTAGE_OF_CHERRY)
       return "cherries";
-   else if (randNum > 12.5)
-      return "(space)";
+   else if (randNum > PERCENTAGE_OF_SPACE)
+      return "space";
    else
       return "7";
 }
 
-// Decide the winning amount
+// Decide the winning factors
 int getPayMultiplier (TripleString thePull)
 {
+   const int SEVEN_SEVEN_SEVEN = 100, BAR_BAR_BAR = 50,
+      CHERRY_CHERRY_CHERRY = 30, CHERRY_CHERRY_NOCHERRY = 15,
+      CHERRY_NOCHERRY_ANY = 5;
+
    if (thePull.get1stString() == "cherries")
    {
       if (thePull.get2ndString() == "cherries")
       {
          if (thePull.get3rdString() == "cherries")
          {
-            return 30;
+            return CHERRY_CHERRY_CHERRY;
          }
          else
-            return 15;
+            return CHERRY_CHERRY_NOCHERRY;
       }
       else
-         return 5;
+         return CHERRY_NOCHERRY_ANY;
    }
    else if (thePull.get1stString() == "BAR" && thePull.get2ndString() == "BAR"
          && thePull.get3rdString() == "BAR")
-      return 50;
+      return BAR_BAR_BAR;
    else if (thePull.get1stString() == "7" && thePull.get2ndString() == "7"
          && thePull.get3rdString() == "7")
-      return 100;
+      return SEVEN_SEVEN_SEVEN;
+
    return 0;
 }
 
@@ -134,21 +157,27 @@ void display (TripleString thePull, int winnings)
       cout << "Congratulations, you win: $" << winnings << "!" << endl << endl;
 }
 
-// Check if a string is valid
-bool validString(string str)
+
+//------------ TripleString member methods definitions ------------
+
+// Default constructor
+TripleString::TripleString()
 {
-   if (str.length() <= TripleString::MAX_LEN)
-      return true;
-   else
-      return false;
+   string1 = "";
+   string2 = "";
+   string3 = "";
 }
 
 // Set the 1st string
-void TripleString::set1stString(string str)
+bool TripleString::set1stString(string str)
 {
-   if (validString(str)) {
+   if (validString(str))
+   {
       string1 = str;
+      return true;
    }
+   else
+      return false;
 }
 
 // Get the 1st string
@@ -158,11 +187,15 @@ string TripleString::get1stString()
 }
 
 // Set the 2nd string
-void TripleString::set2ndString(string str)
+bool TripleString::set2ndString(string str)
 {
-   if (validString(str)) {
+   if (validString(str))
+   {
       string2 = str;
+      return true;
    }
+   else
+      return false;
 }
 
 // Get the 2nd string
@@ -172,11 +205,15 @@ string TripleString::get2ndString()
 }
 
 // Set the 3rd string
-void TripleString::set3rdString(string str)
+bool TripleString::set3rdString(string str)
 {
-   if (validString(str)) {
+   if (validString(str))
+   {
       string3 = str;
+      return true;
    }
+   else
+      return false;
 }
 
 // Get the 3rd string
@@ -185,12 +222,15 @@ string TripleString::get3rdString()
    return string3;
 }
 
-/*TripleString::TripleString()
+// Check if a string is valid
+bool TripleString::validString(string str)
 {
-   string1 = "";
-   string2 = "";
-   string3 = "";
-}*/
+   if (str.length() <= MAX_LEN)
+      return true;
+   else
+      return false;
+}
+
 
 
 /* ----------------------- Sample RUN ---------------------------
@@ -209,7 +249,7 @@ Sorry, you lose.
 
 How much would you like to bet (1 - 100) or 0 to quit? 1
 whirrrrrr .... and your pull is ... 
- cherries BAR (space)
+ cherries BAR space
 Congratulations, you win: $5!
 
 How much would you like to bet (1 - 100) or 0 to quit? 1
@@ -229,7 +269,7 @@ Sorry, you lose.
 
 How much would you like to bet (1 - 100) or 0 to quit? 1
 whirrrrrr .... and your pull is ... 
- cherries (space) 7
+ cherries space 7
 Congratulations, you win: $5!
 
 How much would you like to bet (1 - 100) or 0 to quit? 1
@@ -244,12 +284,12 @@ Sorry, you lose.
 
 How much would you like to bet (1 - 100) or 0 to quit? 1
 whirrrrrr .... and your pull is ... 
- BAR (space) cherries
+ BAR space cherries
 Sorry, you lose.
 
 How much would you like to bet (1 - 100) or 0 to quit? 2
 whirrrrrr .... and your pull is ... 
- BAR cherries (space)
+ BAR cherries space
 Sorry, you lose.
 
 How much would you like to bet (1 - 100) or 0 to quit? 2
@@ -264,7 +304,7 @@ Sorry, you lose.
 
 How much would you like to bet (1 - 100) or 0 to quit? 2
 whirrrrrr .... and your pull is ... 
- (space) BAR BAR
+ space BAR BAR
 Sorry, you lose.
 
 How much would you like to bet (1 - 100) or 0 to quit? 2
@@ -289,7 +329,7 @@ Sorry, you lose.
 
 How much would you like to bet (1 - 100) or 0 to quit? 2
 whirrrrrr .... and your pull is ... 
- BAR BAR (space)
+ BAR BAR space
 Sorry, you lose.
 
 How much would you like to bet (1 - 100) or 0 to quit? 2
@@ -297,59 +337,59 @@ whirrrrrr .... and your pull is ...
  BAR cherries 7
 Sorry, you lose.
 
-How much would you like to bet (1 - 100) or 0 to quit? 10
+How much would you like to bet (1 - 100) or 0 to quit? 5
 whirrrrrr .... and your pull is ... 
- (space) BAR cherries
+ space BAR cherries
 Sorry, you lose.
 
-How much would you like to bet (1 - 100) or 0 to quit? 10
+How much would you like to bet (1 - 100) or 0 to quit? 5
 whirrrrrr .... and your pull is ... 
- (space) 7 BAR
+ space 7 BAR
 Sorry, you lose.
 
-How much would you like to bet (1 - 100) or 0 to quit? 10
+How much would you like to bet (1 - 100) or 0 to quit? 5
 whirrrrrr .... and your pull is ... 
  BAR 7 cherries
 Sorry, you lose.
 
-How much would you like to bet (1 - 100) or 0 to quit? 10
+How much would you like to bet (1 - 100) or 0 to quit? 5
 whirrrrrr .... and your pull is ... 
  cherries BAR BAR
-Congratulations, you win: $50!
+Congratulations, you win: $25!
 
-How much would you like to bet (1 - 100) or 0 to quit? 10
+How much would you like to bet (1 - 100) or 0 to quit? 5
 whirrrrrr .... and your pull is ... 
- cherries (space) BAR
-Congratulations, you win: $50!
+ cherries space BAR
+Congratulations, you win: $25!
 
-How much would you like to bet (1 - 100) or 0 to quit? 10
+How much would you like to bet (1 - 100) or 0 to quit? 5
 whirrrrrr .... and your pull is ... 
- (space) BAR cherries
+ space BAR cherries
 Sorry, you lose.
 
-How much would you like to bet (1 - 100) or 0 to quit? 10
+How much would you like to bet (1 - 100) or 0 to quit? 5
 whirrrrrr .... and your pull is ... 
- cherries BAR (space)
-Congratulations, you win: $50!
+ cherries BAR space
+Congratulations, you win: $25!
 
-How much would you like to bet (1 - 100) or 0 to quit? 10
+How much would you like to bet (1 - 100) or 0 to quit? 5
 whirrrrrr .... and your pull is ... 
  BAR cherries 7
 Sorry, you lose.
 
-How much would you like to bet (1 - 100) or 0 to quit? 10
+How much would you like to bet (1 - 100) or 0 to quit? 5
 whirrrrrr .... and your pull is ... 
- (space) BAR 7
+ space BAR 7
 Sorry, you lose.
 
-How much would you like to bet (1 - 100) or 0 to quit? 10
+How much would you like to bet (1 - 100) or 0 to quit? 5
 whirrrrrr .... and your pull is ... 
  7 BAR BAR
 Sorry, you lose.
 
 How much would you like to bet (1 - 100) or 0 to quit? 100
 whirrrrrr .... and your pull is ... 
- BAR (space) 7
+ BAR space 7
 Sorry, you lose.
 
 How much would you like to bet (1 - 100) or 0 to quit? 100
@@ -359,7 +399,7 @@ Congratulations, you win: $5000!
 
 How much would you like to bet (1 - 100) or 0 to quit? 100
 whirrrrrr .... and your pull is ... 
- (space) cherries cherries
+ space cherries cherries
 Sorry, you lose.
 
 How much would you like to bet (1 - 100) or 0 to quit? 100
@@ -394,11 +434,10 @@ Congratulations, you win: $500!
 
 How much would you like to bet (1 - 100) or 0 to quit? 100
 whirrrrrr .... and your pull is ... 
- BAR BAR (space)
+ BAR BAR space
 Sorry, you lose.
 
 How much would you like to bet (1 - 100) or 0 to quit? 0
 
-Hope you had a wonderful time. Good bye!
 
 ------------------------------------------------------------ */
